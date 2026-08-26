@@ -31,6 +31,8 @@ Do not commit or share the real password.
 ## Environment variables
 - `DATABASE_URL`: PostgreSQL datasource URL
 - `PORT`: Optional, defaults to 3000
+- `CORS_ORIGIN`: Optional comma-separated list of allowed browser origins. If omitted, browser requests from any origin are allowed without credentials.
+- `OPENAPI_SERVER_URL`: Optional server URL shown in Swagger UI. Defaults to the current deployment origin.
 
 ## Migration and Prisma
 - `npx prisma validate`
@@ -46,6 +48,9 @@ Do not commit or share the real password.
 
 ## API endpoint
 `POST /api/v1/leads/query`
+
+## Swagger
+Open interactive API documentation at `/docs` (for example, `https://your-deployment.vercel.app/docs`). The raw OpenAPI document is available at `/docs.json`. Swagger's **Authorize** dialog accepts the required `x-tenant-id`, `x-user-id`, and `x-user-role` headers.
 
 ## Required headers
 - `x-tenant-id`: tenant UUID
