@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  owner
+  admin
+  manager
+  agent
+}
+
+enum CustomFieldType {
+  string
+  number
+  date
+  boolean
+}
+
+model Tenant {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String
+  createdAt    DateTime      @default(now()) @map("created_at")
+  users        User[]
+  leads        Lead[]
+  customFields CustomField[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name         String
+  email        String
+  role         UserRole
+  createdAt    DateTime @default(now()) @map("created_at")
+  createdLeads Lead[]   @relation("CreatedLeads")
+  assignedLeads Lead[]  @relation("AssignedLeads")
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+model Lead {
+  id               String                    @id @default(uuid()) @db.Uuid
+  tenantId         String                    @map("tenant_id") @db.Uuid
+  tenant           Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId           String                    @map("user_id") @db.Uuid
+  createdBy        User                      @relation("CreatedLeads", fields: [userId], references: [id], onDelete: Restrict)
+  name             String
+  phone            String
+  countryCode      String                    @map("country_code")
+  e164             String
+  email            String?
+  status           String                    @default("new")
+  source           String                    @default("manual")
+  assignedTo       String?                   @map("assigned_to") @db.Uuid
+  assignedUser     User?                     @relation("AssignedLeads", fields: [assignedTo], references: [id], onDelete: SetNull)
+  followUpDate     DateTime?                 @map("follow_up_date") @db.Date
+  createdAt        DateTime                  @default(now()) @map("created_at")
+  updatedAt        DateTime                  @updatedAt @map("updated_at")
+  customFieldValues LeadCustomFieldValue[]
+
+  @@index([tenantId])
+  @@index([assignedTo])
+  @@index([userId])
+  @@index([followUpDate])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+model CustomField {
+  id         String                    @id @default(uuid()) @db.Uuid
+  tenantId   String                    @map("tenant_id") @db.Uuid
+  tenant     Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  label      String
+  type       CustomFieldType
+  status     Boolean                   @default(true)
+  createdAt  DateTime                  @default(now()) @map("created_at")
+  values     LeadCustomFieldValue[]
+
+  @@index([tenantId])
+  @@map("custom_fields")
+}
+
+model LeadCustomFieldValue {
+  id       String       @id @default(uuid()) @db.Uuid
+  leadId   String       @map("lead_id") @db.Uuid
+  lead     Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  fieldId  String       @map("field_id") @db.Uuid
+  field    CustomField  @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  value    String
+
+  @@unique([leadId, fieldId])
+  @@index([leadId])
+  @@index([fieldId])
+  @@map("lead_custom_field_values")
+}
