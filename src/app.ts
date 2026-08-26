@@ -1,7 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import swaggerUi from 'swagger-ui-express';
 import swaggerUiDist from 'swagger-ui-dist';
 import leadsRoutes from './routes/leads.js';
@@ -19,12 +17,9 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 app.get('/', (_req, res) => res.status(200).json({ status: 'ok', service: 'lead-query-api' }));
-app.get('/docs/swagger-ui.css', (_req, res) => {
-	res.type('css').send(readFileSync(path.join(swaggerUiDist.getAbsoluteFSPath(), 'swagger-ui.css')));
-});
 app.use('/docs', express.static(swaggerUiDist.getAbsoluteFSPath(), { index: false }));
 app.use('/docs', swaggerUi.serve);
-app.use('/docs', swaggerUi.setup(openApiDocument));
+app.use('/docs', swaggerUi.setup(openApiDocument, { customCssUrl: 'https://unpkg.com/swagger-ui-dist@5/swagger-ui.css' }));
 app.get('/docs.json', (_req, res) => res.status(200).json(openApiDocument));
 app.use(authMiddleware);
 app.use('/api/v1', leadsRoutes);
