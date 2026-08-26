@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'node:path';
 import swaggerUi from 'swagger-ui-express';
 import swaggerUiDist from 'swagger-ui-dist';
 import leadsRoutes from './routes/leads.js';
@@ -17,6 +18,7 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 app.get('/', (_req, res) => res.status(200).json({ status: 'ok', service: 'lead-query-api' }));
+app.get('/docs/swagger-ui.css', (_req, res) => res.sendFile(path.join(swaggerUiDist.getAbsoluteFSPath(), 'index.css')));
 app.use('/docs', express.static(swaggerUiDist.getAbsoluteFSPath(), { index: false }));
 app.use('/docs', swaggerUi.serve);
 app.use('/docs', swaggerUi.setup(openApiDocument));
